@@ -8,7 +8,7 @@ FMP MCP Server - A Model Context Protocol server that provides tools, resources,
 
 ## Tech Stack
 
-- **Language**: Python 3.8+
+- **Language**: Python 3.10+
 - **Package Manager**: uv (Astral's fast Python package manager)
 - **Framework**: MCP (Model Context Protocol)
 - **API Client**: httpx for async HTTP requests
@@ -136,7 +136,7 @@ When working with this codebase:
 ## CI/CD Pipeline
 
 GitHub Actions workflows:
-- **CI Pipeline**: Runs tests, linting, type checking across Python 3.8-3.11
+- **CI Pipeline**: Runs tests, linting, type checking across Python 3.10-3.12
 - **Docker Pipeline**: Builds and pushes Docker images to GitHub Container Registry
 - **Coverage**: Reports code coverage to Codecov
 
