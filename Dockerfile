@@ -16,7 +16,7 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 WORKDIR /app
 
 # Copy uv configuration files
-COPY pyproject.toml uv.lock ./
+COPY pyproject.toml uv.lock README.md ./
 
 # Install dependencies
 RUN uv sync --frozen --no-dev
@@ -24,10 +24,13 @@ RUN uv sync --frozen --no-dev
 # Copy source code
 COPY src/ ./src/
 
-# Create non-root user
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+# Create non-root user with home directory
+RUN groupadd -r appuser && useradd -r -g appuser -m appuser
 RUN chown -R appuser:appuser /app
 USER appuser
+
+# Set environment variables for the user
+ENV UV_CACHE_DIR=/home/appuser/.cache/uv
 
 # Expose port (if needed for health checks)
 EXPOSE 8080

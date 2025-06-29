@@ -8,17 +8,11 @@ from mcp.server import Server
 from mcp.server.models import InitializationOptions
 from mcp.server.stdio import stdio_server
 from mcp.types import (
-    CallToolRequest,
     CallToolResult,
-    GetPromptRequest,
     GetPromptResult,
-    GetResourceRequest,
-    GetResourceResult,
-    ListPromptsRequest,
+    ReadResourceResult,
     ListPromptsResult,
-    ListResourcesRequest,
     ListResourcesResult,
-    ListToolsRequest,
     ListToolsResult,
     Prompt,
     PromptArgument,
@@ -26,7 +20,6 @@ from mcp.types import (
     Resource,
     TextContent,
     Tool,
-    ToolInput,
 )
 from pydantic import BaseModel
 
@@ -288,8 +281,8 @@ class FMPServer:
                 ]
             )
         
-        @self.server.get_resource()
-        async def get_resource(uri: str) -> GetResourceResult:
+        @self.server.read_resource()
+        async def read_resource(uri: str) -> ReadResourceResult:
             """Get resource content."""
             if not self.fmp_client:
                 self.fmp_client = FMPClient()
@@ -314,12 +307,12 @@ class FMPServer:
                 else:
                     raise ValueError(f"Unknown resource: {uri}")
                 
-                return GetResourceResult(
+                return ReadResourceResult(
                     contents=[TextContent(type="text", text=json.dumps(result, indent=2))]
                 )
             
             except Exception as e:
-                return GetResourceResult(
+                return ReadResourceResult(
                     contents=[TextContent(type="text", text=f"Error: {str(e)}")]
                 )
         
@@ -498,11 +491,7 @@ Please format with clear sections and data-driven insights."""
                 write_stream,
                 InitializationOptions(
                     server_name="fmp-mcp-server",
-                    server_version="0.1.0",
-                    capabilities=self.server.get_capabilities(
-                        notification_options=None,
-                        experimental_capabilities=None
-                    )
+                    server_version="0.1.0"
                 )
             )
     

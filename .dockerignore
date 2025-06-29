@@ -3,7 +3,6 @@
 .gitignore
 
 # Documentation
-README.md
 CLAUDE.md
 docs/
 
