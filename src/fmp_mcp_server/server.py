@@ -2,42 +2,44 @@
 
 import asyncio
 import json
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any
 
 from mcp.server import Server
 from mcp.server.models import InitializationOptions
 from mcp.server.stdio import stdio_server
 from mcp.types import (
+    AnyUrl,
     CallToolResult,
     GetPromptResult,
-    ReadResourceResult,
     ListPromptsResult,
     ListResourcesResult,
     ListToolsResult,
     Prompt,
     PromptArgument,
     PromptMessage,
+    ReadResourceResult,
     Resource,
+    ServerCapabilities,
     TextContent,
+    TextResourceContents,
     Tool,
 )
-from pydantic import BaseModel
 
 from .client import FMPClient
 
 
 class FMPServer:
     """MCP server for Financial Modelling Prep API."""
-    
-    def __init__(self):
+
+    def __init__(self) -> None:
         """Initialize the FMP MCP server."""
-        self.fmp_client: Optional[FMPClient] = None
-        self.server = Server("fmp-mcp-server")
+        self.fmp_client: FMPClient | None = None
+        self.server: Server = Server("fmp-mcp-server")
         self._setup_handlers()
-    
+
     def _setup_handlers(self) -> None:
         """Set up MCP server handlers."""
-        
+
         @self.server.list_tools()
         async def list_tools() -> ListToolsResult:
             """List available tools."""
@@ -51,11 +53,11 @@ class FMPServer:
                             "properties": {
                                 "symbol": {
                                     "type": "string",
-                                    "description": "Stock ticker symbol (e.g., AAPL, TSLA)"
-                                }
+                                    "description": "Stock ticker symbol (e.g., AAPL, TSLA)",
+                                },
                             },
-                            "required": ["symbol"]
-                        }
+                            "required": ["symbol"],
+                        },
                     ),
                     Tool(
                         name="get_stock_quote",
@@ -65,11 +67,11 @@ class FMPServer:
                             "properties": {
                                 "symbol": {
                                     "type": "string",
-                                    "description": "Stock ticker symbol (e.g., AAPL, TSLA)"
-                                }
+                                    "description": "Stock ticker symbol (e.g., AAPL, TSLA)",
+                                },
                             },
-                            "required": ["symbol"]
-                        }
+                            "required": ["symbol"],
+                        },
                     ),
                     Tool(
                         name="get_financial_statements",
@@ -79,27 +81,27 @@ class FMPServer:
                             "properties": {
                                 "symbol": {
                                     "type": "string",
-                                    "description": "Stock ticker symbol (e.g., AAPL, TSLA)"
+                                    "description": "Stock ticker symbol (e.g., AAPL, TSLA)",
                                 },
                                 "statement_type": {
                                     "type": "string",
                                     "enum": ["income", "balance", "cashflow"],
-                                    "description": "Type of financial statement to retrieve"
+                                    "description": "Type of financial statement to retrieve",
                                 },
                                 "period": {
                                     "type": "string",
                                     "enum": ["annual", "quarter"],
                                     "default": "annual",
-                                    "description": "Reporting period"
+                                    "description": "Reporting period",
                                 },
                                 "limit": {
                                     "type": "integer",
                                     "default": 5,
-                                    "description": "Number of periods to retrieve"
-                                }
+                                    "description": "Number of periods to retrieve",
+                                },
                             },
-                            "required": ["symbol", "statement_type"]
-                        }
+                            "required": ["symbol", "statement_type"],
+                        },
                     ),
                     Tool(
                         name="get_key_metrics",
@@ -109,22 +111,22 @@ class FMPServer:
                             "properties": {
                                 "symbol": {
                                     "type": "string",
-                                    "description": "Stock ticker symbol (e.g., AAPL, TSLA)"
+                                    "description": "Stock ticker symbol (e.g., AAPL, TSLA)",
                                 },
                                 "period": {
                                     "type": "string",
                                     "enum": ["annual", "quarter"],
                                     "default": "annual",
-                                    "description": "Reporting period"
+                                    "description": "Reporting period",
                                 },
                                 "limit": {
                                     "type": "integer",
                                     "default": 5,
-                                    "description": "Number of periods to retrieve"
-                                }
+                                    "description": "Number of periods to retrieve",
+                                },
                             },
-                            "required": ["symbol"]
-                        }
+                            "required": ["symbol"],
+                        },
                     ),
                     Tool(
                         name="get_financial_ratios",
@@ -134,22 +136,22 @@ class FMPServer:
                             "properties": {
                                 "symbol": {
                                     "type": "string",
-                                    "description": "Stock ticker symbol (e.g., AAPL, TSLA)"
+                                    "description": "Stock ticker symbol (e.g., AAPL, TSLA)",
                                 },
                                 "period": {
                                     "type": "string",
                                     "enum": ["annual", "quarter"],
                                     "default": "annual",
-                                    "description": "Reporting period"
+                                    "description": "Reporting period",
                                 },
                                 "limit": {
                                     "type": "integer",
                                     "default": 5,
-                                    "description": "Number of periods to retrieve"
-                                }
+                                    "description": "Number of periods to retrieve",
+                                },
                             },
-                            "required": ["symbol"]
-                        }
+                            "required": ["symbol"],
+                        },
                     ),
                     Tool(
                         name="get_dcf_valuation",
@@ -159,11 +161,11 @@ class FMPServer:
                             "properties": {
                                 "symbol": {
                                     "type": "string",
-                                    "description": "Stock ticker symbol (e.g., AAPL, TSLA)"
-                                }
+                                    "description": "Stock ticker symbol (e.g., AAPL, TSLA)",
+                                },
                             },
-                            "required": ["symbol"]
-                        }
+                            "required": ["symbol"],
+                        },
                     ),
                     Tool(
                         name="search_companies",
@@ -173,16 +175,16 @@ class FMPServer:
                             "properties": {
                                 "query": {
                                     "type": "string",
-                                    "description": "Search query (company name or symbol)"
+                                    "description": "Search query (company name or symbol)",
                                 },
                                 "limit": {
                                     "type": "integer",
                                     "default": 10,
-                                    "description": "Maximum number of results"
-                                }
+                                    "description": "Maximum number of results",
+                                },
                             },
-                            "required": ["query"]
-                        }
+                            "required": ["query"],
+                        },
                     ),
                     Tool(
                         name="get_sector_performance",
@@ -190,21 +192,24 @@ class FMPServer:
                         inputSchema={
                             "type": "object",
                             "properties": {},
-                            "additionalProperties": False
-                        }
-                    )
-                ]
+                            "additionalProperties": False,
+                        },
+                    ),
+                ],
             )
-        
+
         @self.server.call_tool()
-        async def call_tool(name: str, arguments: Dict[str, Any]) -> CallToolResult:
+        async def call_tool(name: str, arguments: dict[str, Any]) -> CallToolResult:
             """Handle tool calls."""
             if not self.fmp_client:
                 self.fmp_client = FMPClient()
-            
+
             try:
+                result: list[dict[str, Any]]
                 if name == "get_company_profile":
-                    result = await self.fmp_client.get_company_profile(arguments["symbol"])
+                    result = await self.fmp_client.get_company_profile(
+                        arguments["symbol"],
+                    )
                 elif name == "get_stock_quote":
                     result = await self.fmp_client.get_quote(arguments["symbol"])
                 elif name == "get_financial_statements":
@@ -212,110 +217,139 @@ class FMPServer:
                     statement_type = arguments["statement_type"]
                     period = arguments.get("period", "annual")
                     limit = arguments.get("limit", 5)
-                    
+
                     if statement_type == "income":
-                        result = await self.fmp_client.get_income_statement(symbol, period, limit)
+                        result = await self.fmp_client.get_income_statement(
+                            symbol,
+                            period,
+                            limit,
+                        )
                     elif statement_type == "balance":
-                        result = await self.fmp_client.get_balance_sheet(symbol, period, limit)
+                        result = await self.fmp_client.get_balance_sheet(
+                            symbol,
+                            period,
+                            limit,
+                        )
                     elif statement_type == "cashflow":
-                        result = await self.fmp_client.get_cash_flow(symbol, period, limit)
+                        result = await self.fmp_client.get_cash_flow(
+                            symbol,
+                            period,
+                            limit,
+                        )
                     else:
                         raise ValueError(f"Invalid statement type: {statement_type}")
                 elif name == "get_key_metrics":
                     result = await self.fmp_client.get_key_metrics(
                         arguments["symbol"],
                         arguments.get("period", "annual"),
-                        arguments.get("limit", 5)
+                        arguments.get("limit", 5),
                     )
                 elif name == "get_financial_ratios":
                     result = await self.fmp_client.get_financial_ratios(
                         arguments["symbol"],
                         arguments.get("period", "annual"),
-                        arguments.get("limit", 5)
+                        arguments.get("limit", 5),
                     )
                 elif name == "get_dcf_valuation":
-                    result = await self.fmp_client.get_dcf_valuation(arguments["symbol"])
+                    result = await self.fmp_client.get_dcf_valuation(
+                        arguments["symbol"],
+                    )
                 elif name == "search_companies":
                     result = await self.fmp_client.search_companies(
                         arguments["query"],
-                        arguments.get("limit", 10)
+                        arguments.get("limit", 10),
                     )
                 elif name == "get_sector_performance":
                     result = await self.fmp_client.get_sector_performance()
                 else:
                     raise ValueError(f"Unknown tool: {name}")
-                
+
                 return CallToolResult(
-                    content=[TextContent(type="text", text=json.dumps(result, indent=2))]
+                    content=[
+                        TextContent(type="text", text=json.dumps(result, indent=2)),
+                    ],
                 )
-            
+
             except Exception as e:
                 return CallToolResult(
-                    content=[TextContent(type="text", text=f"Error: {str(e)}")],
-                    isError=True
+                    content=[TextContent(type="text", text=f"Error: {e!s}")],
+                    isError=True,
                 )
-        
+
         @self.server.list_resources()
         async def list_resources() -> ListResourcesResult:
             """List available resources."""
             return ListResourcesResult(
                 resources=[
                     Resource(
-                        uri="fmp://market/sectors",
+                        uri=AnyUrl("fmp://market/sectors"),
                         name="Market Sectors Performance",
                         description="Real-time sector performance data",
-                        mimeType="application/json"
+                        mimeType="application/json",
                     ),
                     Resource(
-                        uri="fmp://company/{symbol}/profile",
+                        uri=AnyUrl("fmp://company/{symbol}/profile"),
                         name="Company Profile",
                         description="Company profile information (use {symbol} placeholder)",
-                        mimeType="application/json"
+                        mimeType="application/json",
                     ),
                     Resource(
-                        uri="fmp://company/{symbol}/financials",
+                        uri=AnyUrl("fmp://company/{symbol}/financials"),
                         name="Financial Statements",
                         description="Complete financial statements for a company (use {symbol} placeholder)",
-                        mimeType="application/json"
-                    )
-                ]
+                        mimeType="application/json",
+                    ),
+                ],
             )
-        
+
         @self.server.read_resource()
         async def read_resource(uri: str) -> ReadResourceResult:
             """Get resource content."""
             if not self.fmp_client:
                 self.fmp_client = FMPClient()
-            
+
             try:
+                result_data: Any
                 if uri == "fmp://market/sectors":
-                    result = await self.fmp_client.get_sector_performance()
+                    result_data = await self.fmp_client.get_sector_performance()
                 elif uri.startswith("fmp://company/") and uri.endswith("/profile"):
                     symbol = uri.split("/")[2]
-                    result = await self.fmp_client.get_company_profile(symbol)
+                    result_data = await self.fmp_client.get_company_profile(symbol)
                 elif uri.startswith("fmp://company/") and uri.endswith("/financials"):
                     symbol = uri.split("/")[2]
                     # Get all financial statements
                     income = await self.fmp_client.get_income_statement(symbol, limit=3)
                     balance = await self.fmp_client.get_balance_sheet(symbol, limit=3)
                     cashflow = await self.fmp_client.get_cash_flow(symbol, limit=3)
-                    result = {
+                    result_data = {
                         "income_statement": income,
                         "balance_sheet": balance,
-                        "cash_flow": cashflow
+                        "cash_flow": cashflow,
                     }
                 else:
                     raise ValueError(f"Unknown resource: {uri}")
-                
+
                 return ReadResourceResult(
-                    contents=[TextContent(type="text", text=json.dumps(result, indent=2))]
+                    contents=[
+                        TextResourceContents(
+                            uri=AnyUrl(uri),
+                            mimeType="application/json",
+                            text=json.dumps(result_data, indent=2),
+                        ),
+                    ],
                 )
-            
+
             except Exception as e:
                 return ReadResourceResult(
-                    contents=[TextContent(type="text", text=f"Error: {str(e)}")]
+                    contents=[
+                        TextResourceContents(
+                            uri=AnyUrl(uri),
+                            mimeType="text/plain",
+                            text=f"Error: {e!s}",
+                        ),
+                    ],
                 )
-        
+
         @self.server.list_prompts()
         async def list_prompts() -> ListPromptsResult:
             """List available prompts."""
@@ -328,9 +362,9 @@ class FMPServer:
                             PromptArgument(
                                 name="symbol",
                                 description="Stock ticker symbol",
-                                required=True
-                            )
-                        ]
+                                required=True,
+                            ),
+                        ],
                     ),
                     Prompt(
                         name="investment_research",
@@ -339,20 +373,20 @@ class FMPServer:
                             PromptArgument(
                                 name="symbol",
                                 description="Stock ticker symbol",
-                                required=True
-                            )
-                        ]
+                                required=True,
+                            ),
+                        ],
                     ),
                     Prompt(
                         name="sector_analysis",
                         description="Sector performance and comparison analysis",
-                        arguments=[]
-                    )
-                ]
+                        arguments=[],
+                    ),
+                ],
             )
-        
+
         @self.server.get_prompt()
-        async def get_prompt(name: str, arguments: Dict[str, str]) -> GetPromptResult:
+        async def get_prompt(name: str, arguments: dict[str, str]) -> GetPromptResult:
             """Get prompt content."""
             if name == "financial_analysis":
                 symbol = arguments.get("symbol", "").upper()
@@ -388,13 +422,13 @@ class FMPServer:
    - Provide investment thesis and risk factors
    - Rate as Buy/Hold/Sell with rationale
 
-Please format the analysis in a clear, structured manner with data-driven insights."""
-                            )
-                        )
-                    ]
+Please format the analysis in a clear, structured manner with data-driven insights.""",
+                            ),
+                        ),
+                    ],
                 )
-            
-            elif name == "investment_research":
+
+            if name == "investment_research":
                 symbol = arguments.get("symbol", "").upper()
                 return GetPromptResult(
                     description=f"Investment research report for {symbol}",
@@ -437,13 +471,13 @@ Please format the analysis in a clear, structured manner with data-driven insigh
 - Target price with 12-month horizon
 - Position sizing suggestion
 
-Please provide specific numbers and ratios to support all conclusions."""
-                            )
-                        )
-                    ]
+Please provide specific numbers and ratios to support all conclusions.""",
+                            ),
+                        ),
+                    ],
                 )
-            
-            elif name == "sector_analysis":
+
+            if name == "sector_analysis":
                 return GetPromptResult(
                     description="Sector performance and comparison analysis",
                     messages=[
@@ -474,15 +508,14 @@ For the top 3 performing sectors:
 - Interest rate sensitivity analysis
 - Growth vs. value sector positioning
 
-Please format with clear sections and data-driven insights."""
-                            )
-                        )
-                    ]
+Please format with clear sections and data-driven insights.""",
+                            ),
+                        ),
+                    ],
                 )
-            
-            else:
-                raise ValueError(f"Unknown prompt: {name}")
-    
+
+            raise ValueError(f"Unknown prompt: {name}")
+
     async def run(self) -> None:
         """Run the MCP server."""
         async with stdio_server() as (read_stream, write_stream):
@@ -491,10 +524,11 @@ Please format with clear sections and data-driven insights."""
                 write_stream,
                 InitializationOptions(
                     server_name="fmp-mcp-server",
-                    server_version="0.1.0"
-                )
+                    server_version="0.1.0",
+                    capabilities=ServerCapabilities(),
+                ),
             )
-    
+
     async def cleanup(self) -> None:
         """Clean up resources."""
         if self.fmp_client:
