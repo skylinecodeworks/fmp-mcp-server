@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  fmp-mcp-server:
+    build: .
+    container_name: fmp-mcp-server
+    restart: unless-stopped
+    environment:
+      - FMP_API_KEY=${FMP_API_KEY}
+      - FMP_BASE_URL=${FMP_BASE_URL:-https://financialmodelingprep.com/api/v3}
+      - RATE_LIMIT_REQUESTS_PER_MINUTE=${RATE_LIMIT_REQUESTS_PER_MINUTE:-300}
+    env_file:
+      - .env
+    # For MCP servers, we typically don't need to expose ports
+    # as they communicate via stdio
+    # ports:
+    #   - "8080:8080"
+    
+    # Health check (optional)
+    healthcheck:
+      test: ["CMD", "python", "-c", "import fmp_mcp_server; print('OK')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

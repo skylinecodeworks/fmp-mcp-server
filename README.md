@@ -72,6 +72,34 @@ uv run python -m fmp_mcp_server.server
 uv run fmp-mcp-server
 ```
 
+## Docker Usage
+
+### Build and run with Docker
+```bash
+# Build the image
+docker build -t fmp-mcp-server .
+
+# Run with environment file
+docker run --env-file .env fmp-mcp-server
+```
+
+### Using Docker Compose
+```bash
+# Start the service
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop the service
+docker-compose down
+```
+
+### Using pre-built image from GitHub Container Registry
+```bash
+docker run --env-file .env ghcr.io/ccdatatraits/fmp-mcp-server:latest
+```
+
 ## Development
 
 1. **Install with development dependencies**:

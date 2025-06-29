@@ -60,6 +60,13 @@ uv run python -m fmp_mcp_server.server
 
 # Or via installed script
 uv run fmp-mcp-server
+
+# Docker build and run
+docker build -t fmp-mcp-server .
+docker run --env-file .env fmp-mcp-server
+
+# Docker Compose
+docker-compose up -d
 ```
 
 ## Architecture
@@ -125,6 +132,21 @@ When working with this codebase:
 - Use `pytest-asyncio` for async test functions
 - Test files mirror source structure in `tests/` directory
 - Mock external HTTP calls to avoid API rate limits during testing
+
+## CI/CD Pipeline
+
+GitHub Actions workflows:
+- **CI Pipeline**: Runs tests, linting, type checking across Python 3.8-3.11
+- **Docker Pipeline**: Builds and pushes Docker images to GitHub Container Registry
+- **Coverage**: Reports code coverage to Codecov
+
+## Docker Deployment
+
+- Multi-stage Docker build with uv for fast dependency installation
+- Non-root user for security
+- Health checks included
+- Docker Compose for easy local development
+- Pre-built images available at `ghcr.io/ccdatatraits/fmp-mcp-server`
 
 ## Rate Limits
 
