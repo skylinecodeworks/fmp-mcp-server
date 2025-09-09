@@ -37,6 +37,12 @@ class FMPServer:
         self.server: Server = Server("fmp-mcp-server")
         self._setup_handlers()
 
+    async def get_fmp_client(self) -> FMPClient:
+        """Get FMP client, initializing if needed."""
+        if not self.fmp_client:
+            self.fmp_client = FMPClient()
+        return self.fmp_client
+
     def _setup_handlers(self) -> None:
         """Set up MCP server handlers."""
 
@@ -201,17 +207,15 @@ class FMPServer:
         @self.server.call_tool()
         async def call_tool(name: str, arguments: dict[str, Any]) -> CallToolResult:
             """Handle tool calls."""
-            if not self.fmp_client:
-                self.fmp_client = FMPClient()
-
             try:
+                fmp_client = await self.get_fmp_client()
                 result: list[dict[str, Any]]
                 if name == "get_company_profile":
-                    result = await self.fmp_client.get_company_profile(
+                    result = await fmp_client.get_company_profile(
                         arguments["symbol"],
                     )
                 elif name == "get_stock_quote":
-                    result = await self.fmp_client.get_quote(arguments["symbol"])
+                    result = await fmp_client.get_quote(arguments["symbol"])
                 elif name == "get_financial_statements":
                     symbol = arguments["symbol"]
                     statement_type = arguments["statement_type"]
@@ -219,19 +223,19 @@ class FMPServer:
                     limit = arguments.get("limit", 5)
 
                     if statement_type == "income":
-                        result = await self.fmp_client.get_income_statement(
+                        result = await fmp_client.get_income_statement(
                             symbol,
                             period,
                             limit,
                         )
                     elif statement_type == "balance":
-                        result = await self.fmp_client.get_balance_sheet(
+                        result = await fmp_client.get_balance_sheet(
                             symbol,
                             period,
                             limit,
                         )
                     elif statement_type == "cashflow":
-                        result = await self.fmp_client.get_cash_flow(
+                        result = await fmp_client.get_cash_flow(
                             symbol,
                             period,
                             limit,
@@ -239,28 +243,28 @@ class FMPServer:
                     else:
                         raise ValueError(f"Invalid statement type: {statement_type}")
                 elif name == "get_key_metrics":
-                    result = await self.fmp_client.get_key_metrics(
+                    result = await fmp_client.get_key_metrics(
                         arguments["symbol"],
                         arguments.get("period", "annual"),
                         arguments.get("limit", 5),
                     )
                 elif name == "get_financial_ratios":
-                    result = await self.fmp_client.get_financial_ratios(
+                    result = await fmp_client.get_financial_ratios(
                         arguments["symbol"],
                         arguments.get("period", "annual"),
                         arguments.get("limit", 5),
                     )
                 elif name == "get_dcf_valuation":
-                    result = await self.fmp_client.get_dcf_valuation(
+                    result = await fmp_client.get_dcf_valuation(
                         arguments["symbol"],
                     )
                 elif name == "search_companies":
-                    result = await self.fmp_client.search_companies(
+                    result = await fmp_client.search_companies(
                         arguments["query"],
                         arguments.get("limit", 10),
                     )
                 elif name == "get_sector_performance":
-                    result = await self.fmp_client.get_sector_performance()
+                    result = await fmp_client.get_sector_performance()
                 else:
                     raise ValueError(f"Unknown tool: {name}")
 
@@ -305,22 +309,20 @@ class FMPServer:
         @self.server.read_resource()
         async def read_resource(uri: str) -> ReadResourceResult:
             """Get resource content."""
-            if not self.fmp_client:
-                self.fmp_client = FMPClient()
-
             try:
+                fmp_client = await self.get_fmp_client()
                 result_data: Any
                 if uri == "fmp://market/sectors":
-                    result_data = await self.fmp_client.get_sector_performance()
+                    result_data = await fmp_client.get_sector_performance()
                 elif uri.startswith("fmp://company/") and uri.endswith("/profile"):
                     symbol = uri.split("/")[2]
-                    result_data = await self.fmp_client.get_company_profile(symbol)
+                    result_data = await fmp_client.get_company_profile(symbol)
                 elif uri.startswith("fmp://company/") and uri.endswith("/financials"):
                     symbol = uri.split("/")[2]
                     # Get all financial statements
-                    income = await self.fmp_client.get_income_statement(symbol, limit=3)
-                    balance = await self.fmp_client.get_balance_sheet(symbol, limit=3)
-                    cashflow = await self.fmp_client.get_cash_flow(symbol, limit=3)
+                    income = await fmp_client.get_income_statement(symbol, limit=3)
+                    balance = await fmp_client.get_balance_sheet(symbol, limit=3)
+                    cashflow = await fmp_client.get_cash_flow(symbol, limit=3)
                     result_data = {
                         "income_statement": income,
                         "balance_sheet": balance,
