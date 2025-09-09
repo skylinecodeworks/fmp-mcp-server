@@ -19,7 +19,7 @@ class FMPClient:
         self.api_key = api_key or os.getenv("FMP_API_KEY")
         self.base_url = base_url or os.getenv(
             "FMP_BASE_URL",
-            "https://financialmodelingprep.com/api/v3",
+            "https://financialmodelingprep.com/stable",
         )
 
         if not self.api_key:
@@ -53,12 +53,12 @@ class FMPClient:
 
     async def get_company_profile(self, symbol: str) -> list[dict[str, Any]]:
         """Get company profile information."""
-        result = await self._request(f"profile/{symbol}")
+        result = await self._request("profile", {"symbol": symbol})
         return result if isinstance(result, list) else [result]
 
     async def get_quote(self, symbol: str) -> list[dict[str, Any]]:
         """Get real-time stock quote."""
-        result = await self._request(f"quote/{symbol}")
+        result = await self._request("quote", {"symbol": symbol})
         return result if isinstance(result, list) else [result]
 
     async def get_income_statement(
@@ -69,8 +69,8 @@ class FMPClient:
     ) -> list[dict[str, Any]]:
         """Get income statement data."""
         result = await self._request(
-            f"income-statement/{symbol}",
-            {"period": period, "limit": limit},
+            "income-statement",
+            {"symbol": symbol, "period": period, "limit": limit},
         )
         return result if isinstance(result, list) else [result]
 
@@ -82,8 +82,8 @@ class FMPClient:
     ) -> list[dict[str, Any]]:
         """Get balance sheet data."""
         result = await self._request(
-            f"balance-sheet-statement/{symbol}",
-            {"period": period, "limit": limit},
+            "balance-sheet-statement",
+            {"symbol": symbol, "period": period, "limit": limit},
         )
         return result if isinstance(result, list) else [result]
 
@@ -95,8 +95,8 @@ class FMPClient:
     ) -> list[dict[str, Any]]:
         """Get cash flow statement data."""
         result = await self._request(
-            f"cash-flow-statement/{symbol}",
-            {"period": period, "limit": limit},
+            "cash-flow-statement",
+            {"symbol": symbol, "period": period, "limit": limit},
         )
         return result if isinstance(result, list) else [result]
 
@@ -108,8 +108,8 @@ class FMPClient:
     ) -> list[dict[str, Any]]:
         """Get key financial metrics."""
         result = await self._request(
-            f"key-metrics/{symbol}",
-            {"period": period, "limit": limit},
+            "key-metrics",
+            {"symbol": symbol, "period": period, "limit": limit},
         )
         return result if isinstance(result, list) else [result]
 
@@ -121,24 +121,24 @@ class FMPClient:
     ) -> list[dict[str, Any]]:
         """Get financial ratios."""
         result = await self._request(
-            f"ratios/{symbol}",
-            {"period": period, "limit": limit},
+            "ratios",
+            {"symbol": symbol, "period": period, "limit": limit},
         )
         return result if isinstance(result, list) else [result]
 
     async def get_dcf_valuation(self, symbol: str) -> list[dict[str, Any]]:
         """Get DCF valuation."""
-        result = await self._request(f"discounted-cash-flow/{symbol}")
+        result = await self._request("discounted-cash-flow", {"symbol": symbol})
         return result if isinstance(result, list) else [result]
 
     async def get_financial_score(self, symbol: str) -> list[dict[str, Any]]:
         """Get financial score."""
-        result = await self._request(f"score/{symbol}")
+        result = await self._request("financial-scores", {"symbol": symbol})
         return result if isinstance(result, list) else [result]
 
     async def get_market_cap(self, symbol: str) -> list[dict[str, Any]]:
         """Get market capitalization."""
-        result = await self._request(f"market-capitalization/{symbol}")
+        result = await self._request("market-capitalization", {"symbol": symbol})
         return result if isinstance(result, list) else [result]
 
     async def search_companies(
@@ -147,7 +147,9 @@ class FMPClient:
         limit: int = 10,
     ) -> list[dict[str, Any]]:
         """Search for companies."""
-        result = await self._request("search", {"query": query, "limit": limit})
+        result = await self._request(
+            "search-symbol", {"query": query, "limit": limit}
+        )
         return result if isinstance(result, list) else [result]
 
     async def get_sector_performance(self) -> list[dict[str, Any]]:
