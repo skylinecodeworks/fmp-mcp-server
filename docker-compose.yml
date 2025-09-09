@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     environment:
       - FMP_API_KEY=${FMP_API_KEY}
-      - FMP_BASE_URL=${FMP_BASE_URL:-https://financialmodelingprep.com/api/v3}
+      - FMP_BASE_URL=${FMP_BASE_URL:-https://financialmodelingprep.com/stable}
       - RATE_LIMIT_REQUESTS_PER_MINUTE=${RATE_LIMIT_REQUESTS_PER_MINUTE:-300}
     env_file:
       - .env

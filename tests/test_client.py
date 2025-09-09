@@ -20,7 +20,7 @@ class TestFMPClient:
         """Test initialization with API key."""
         client = FMPClient(api_key="test_key")
         assert client.api_key == "test_key"
-        assert client.base_url == "https://financialmodelingprep.com/api/v3"
+        assert client.base_url == "https://financialmodelingprep.com/stable"
 
     @pytest.mark.asyncio
     async def test_request_adds_api_key(self):
@@ -36,7 +36,7 @@ class TestFMPClient:
             result = await client._request("test-endpoint")
 
             mock_get.assert_called_once_with(
-                "https://financialmodelingprep.com/api/v3/test-endpoint",
+                "https://financialmodelingprep.com/stable/test-endpoint",
                 params={"apikey": "test_key"},
             )
             assert result == {"test": "data"}
@@ -51,5 +51,18 @@ class TestFMPClient:
 
             result = await client.get_company_profile("AAPL")
 
-            mock_request.assert_called_once_with("profile/AAPL")
+            mock_request.assert_called_once_with("profile", {"symbol": "AAPL"})
+            assert result == [{"symbol": "AAPL"}]
+
+    @pytest.mark.asyncio
+    async def test_get_quote(self):
+        """Test get quote."""
+        client = FMPClient(api_key="test_key")
+
+        with patch.object(client, "_request") as mock_request:
+            mock_request.return_value = {"symbol": "AAPL"}
+
+            result = await client.get_quote("AAPL")
+
+            mock_request.assert_called_once_with("quote", {"symbol": "AAPL"})
             assert result == [{"symbol": "AAPL"}]
