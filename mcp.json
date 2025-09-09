@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "fmp": {
+      "command": "bash",
+      "args": [
+        "-lc",
+        "cd /app && uv run -m fmp_mcp_server.server"
+      ],
+      "env": {
+        "PYTHONPATH": "/app/src",
+        "FMP_API_KEY": "REEMPLAZA_CON_TU_API_KEY"
+      }
+    }
+  }
+}
